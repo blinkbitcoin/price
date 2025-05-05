@@ -2,7 +2,7 @@
 ---
 git_uri: git@github.com:blinkbitcoin/price.git
 git_branch: main
-git_charts_uri: git@github.com:GaloyMoney/charts.git
+git_charts_uri: git@github.com:blinkbitcoin/charts.git
 git_charts_branch: main
 git_charts_bot_branch: bot-bump-price-image
 github_private_key: ((github-blinkbitcoin.private_key))
