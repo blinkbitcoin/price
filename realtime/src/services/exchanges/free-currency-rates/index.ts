@@ -7,10 +7,13 @@ import {
   UnknownExchangeServiceError,
   InvalidExchangeConfigError,
 } from "@domain/exchanges"
-import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
-import { LocalCacheService } from "@services/cache"
 import { CacheKeys } from "@domain/cache"
+import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
+
+import { LocalCacheService } from "@services/cache"
 import { baseLogger } from "@services/logger"
+
+import { cleanRatesObject, isRatesObjectValid } from "@utils"
 
 const mutex = new Mutex()
 export const FreeCurrencyRatesExchangeService = async ({
@@ -110,24 +113,11 @@ const getWithFallback = async ({
   for (const url of urls) {
     try {
       const { status, data } = await axios.get(url, params)
-      const rates = data ? data[baseCurrency] : undefined
-      if (status === 200 && isRatesObjectValid(rates)) return rates
+      const rates = cleanRatesObject(data ? data[baseCurrency] : undefined)
+      if (status === 200 && isRatesObjectValid<FreeCurrencyRatesRates>(rates))
+        return rates
     } catch {}
   }
 
   return new UnknownExchangeServiceError(`Invalid response.`)
-}
-
-const isRatesObjectValid = (rates: unknown): rates is FreeCurrencyRatesRates => {
-  if (!rates || typeof rates !== "object") return false
-
-  let keyCount = 0
-  for (const key in rates) {
-    if (typeof key !== "string" || typeof rates[key] !== "number") {
-      return false
-    }
-    keyCount++
-  }
-
-  return !!keyCount
 }

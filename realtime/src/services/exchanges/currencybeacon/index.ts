@@ -7,10 +7,13 @@ import {
   UnknownExchangeServiceError,
   InvalidExchangeConfigError,
 } from "@domain/exchanges"
-import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
-import { LocalCacheService } from "@services/cache"
 import { CacheKeys } from "@domain/cache"
+import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
+
+import { LocalCacheService } from "@services/cache"
 import { baseLogger } from "@services/logger"
+
+import { cleanRatesObject, isRatesObjectValid } from "@utils"
 
 const mutex = new Mutex()
 export const CurrencyBeaconExchangeService = async ({
@@ -68,8 +71,9 @@ export const CurrencyBeaconExchangeService = async ({
           },
         },
       )
-      const rates = data?.response?.rates
-      if (status >= 400 || !isRatesObjectValid(rates)) {
+      const rates = cleanRatesObject(data?.response?.rates)
+
+      if (status >= 400 || !isRatesObjectValid<CurrencyBeaconRates>(rates)) {
         await LocalCacheService().set<number>({
           key: cacheKeyStatus,
           value: status,
@@ -94,20 +98,6 @@ export const CurrencyBeaconExchangeService = async ({
   return {
     fetchTicker: () => mutex.runExclusive(fetchTicker),
   }
-}
-
-const isRatesObjectValid = (rates: unknown): rates is CurrencyBeaconRates => {
-  if (!rates || typeof rates !== "object") return false
-
-  let keyCount = 0
-  for (const key in rates) {
-    if (typeof key !== "string" || typeof rates[key] !== "number") {
-      return false
-    }
-    keyCount++
-  }
-
-  return !!keyCount
 }
 
 const tickerFromRaw = ({

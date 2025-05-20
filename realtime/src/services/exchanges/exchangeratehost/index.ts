@@ -7,10 +7,13 @@ import {
   UnknownExchangeServiceError,
   InvalidExchangeConfigError,
 } from "@domain/exchanges"
-import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
-import { LocalCacheService } from "@services/cache"
 import { CacheKeys } from "@domain/cache"
+import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
+
+import { LocalCacheService } from "@services/cache"
 import { baseLogger } from "@services/logger"
+
+import { cleanRatesObject, isRatesObjectValid } from "@utils"
 
 const mutex = new Mutex()
 export const ExchangeRateHostService = async ({
@@ -69,7 +72,13 @@ export const ExchangeRateHostService = async ({
       )
 
       const { success, quotes, timestamp } = data
-      if (!success || status >= 400 || !isRatesObjectValid(quotes)) {
+      const rates = cleanRatesObject(quotes)
+
+      if (
+        !success ||
+        status >= 400 ||
+        !isRatesObjectValid<ExchangeRateHostRates>(rates)
+      ) {
         await LocalCacheService().set<number>({
           key: cacheKeyStatus,
           value: status,
@@ -80,11 +89,11 @@ export const ExchangeRateHostService = async ({
 
       await LocalCacheService().set<ExchangeRateHostRates>({
         key: cacheKey,
-        value: quotes,
+        value: rates,
         ttlSecs: toSeconds(cacheTtlSecs > 0 ? cacheTtlSecs : 300),
       })
 
-      return tickerFromRaw({ rate: quotes[symbol], timestamp })
+      return tickerFromRaw({ rate: rates[symbol], timestamp })
     } catch (error) {
       baseLogger.error({ error }, "ExchangeRateHost unknown error")
       return new UnknownExchangeServiceError(error.message || error)
@@ -94,20 +103,6 @@ export const ExchangeRateHostService = async ({
   return {
     fetchTicker: () => mutex.runExclusive(fetchTicker),
   }
-}
-
-const isRatesObjectValid = (rates: unknown): rates is ExchangeRateHostRates => {
-  if (!rates || typeof rates !== "object") return false
-
-  let keyCount = 0
-  for (const key in rates) {
-    if (typeof key !== "string" || typeof rates[key] !== "number") {
-      return false
-    }
-    keyCount++
-  }
-
-  return !!keyCount
 }
 
 const tickerFromRaw = ({
