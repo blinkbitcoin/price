@@ -8,10 +8,13 @@ import {
   InvalidExchangeConfigError,
   InvalidExchangeResponseError,
 } from "@domain/exchanges"
-import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
-import { LocalCacheService } from "@services/cache"
 import { CacheKeys } from "@domain/cache"
+import { toPrice, toSeconds, toTimestamp } from "@domain/primitives"
+
+import { LocalCacheService } from "@services/cache"
 import { baseLogger } from "@services/logger"
+
+import { cleanRatesObject, isRatesObjectValid } from "@utils"
 
 const mutex = new Mutex()
 export const YadioExchangeService = async ({
@@ -51,9 +54,13 @@ export const YadioExchangeService = async ({
         },
       )
 
-      const rates = data && data[base]
-      if (status >= 400 || !isRatesObjectValid(rates))
+      const rawRates = data && data[base]
+      if (status >= 400 || !rawRates)
         return new InvalidExchangeResponseError(`Invalid response. Error ${status}`)
+
+      const rates = cleanRatesObject(rawRates)
+      if (!isRatesObjectValid<YadioRates>(rates))
+        return new InvalidExchangeResponseError(`No valid rates found in response`)
 
       await LocalCacheService().set<YadioRates>({
         key: cacheKey,
@@ -71,20 +78,6 @@ export const YadioExchangeService = async ({
   return {
     fetchTicker: () => mutex.runExclusive(fetchTicker),
   }
-}
-
-const isRatesObjectValid = (rates: unknown): rates is YadioRates => {
-  if (!rates || typeof rates !== "object") return false
-
-  let keyCount = 0
-  for (const key in rates) {
-    if (typeof key !== "string" || typeof rates[key] !== "number") {
-      return false
-    }
-    keyCount++
-  }
-
-  return !!keyCount
 }
 
 const tickerFromRaw = ({
