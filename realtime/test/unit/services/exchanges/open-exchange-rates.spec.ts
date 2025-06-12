@@ -101,8 +101,8 @@ describe("OpenExchangeRatesService", () => {
 
     const result = await service.fetchTicker()
     expect(result).toEqual({
-      bid: toPrice(1 / 0.92),
-      ask: toPrice(1 / 0.92),
+      bid: toPrice(0.92),
+      ask: toPrice(0.92),
       timestamp: toTimestamp(expect.any(Number)),
     })
   })
@@ -125,8 +125,8 @@ describe("OpenExchangeRatesService", () => {
 
     const result = await service.fetchTicker()
     expect(result).toEqual({
-      bid: toPrice(1 / 0.92),
-      ask: toPrice(1 / 0.92),
+      bid: toPrice(0.92),
+      ask: toPrice(0.92),
       timestamp: toTimestamp(expect.any(Number)),
     })
   })

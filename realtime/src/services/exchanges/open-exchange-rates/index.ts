@@ -104,8 +104,8 @@ const tickerFromRaw = ({
 }): Ticker | InvalidTickerError => {
   if (rate && rate > 0 && timestamp > 0) {
     return {
-      bid: toPrice(1 / rate),
-      ask: toPrice(1 / rate),
+      bid: toPrice(rate),
+      ask: toPrice(rate),
       timestamp: toTimestamp(timestamp),
     }
   }
