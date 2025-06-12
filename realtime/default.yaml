@@ -83,3 +83,15 @@ exchanges:
       baseUrl: "http://api.exchangeratesapi.io/v1"
       apiKey: "<your api key>"
       cacheSeconds: 14400
+  - name: "openexchangerates"
+    enabled: false
+    quoteAlias: "*"
+    base: "USD"
+    quote: "*"
+    excludedQuotes: []
+    provider: "openexchangerates"
+    cron: "*/5 * * * * *"
+    config:
+      baseUrl: "https://openexchangerates.org/api"
+      apiKey: "<your api key>"
+      cacheSeconds: 1800

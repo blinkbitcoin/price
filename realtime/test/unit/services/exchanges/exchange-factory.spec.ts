@@ -55,5 +55,27 @@ describe("ExchangeFactory", () => {
       const instance2 = await factory.create(config)
       expect(instance1).toStrictEqual(instance2)
     })
+
+    it("creates an OpenExchangeRatesService instance with valid config", async () => {
+      const config: ExchangeConfig = {
+        provider: "openexchangerates",
+        name: "openexchangerates",
+        base: "USD",
+        quote: "USDT",
+        quoteAlias: "",
+        excludedQuotes: [],
+        cron: "",
+        config: {
+          apiKey: "mock-api-key",
+          baseUrl: "https://openexchangerates.org/api",
+          cacheSeconds: 1800,
+        },
+      }
+      const result = await factory.create(config)
+      const service = result as IExchangeService
+
+      expect(result).not.toBeInstanceOf(Error)
+      expect(typeof service.fetchTicker).toBe("function")
+    })
   })
 })
