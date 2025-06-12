@@ -109,8 +109,7 @@ describe("OpenExchangeRatesService", () => {
 
   it("should use cached rates if available", async () => {
     jest.spyOn(LocalCacheServiceImpl, "LocalCacheService").mockImplementation(() => ({
-      get: <T>() =>
-      Promise.resolve({ EUR: 0.92 } as T),
+      get: <T>() => Promise.resolve({ EUR: 0.92 } as T),
       set: jest.fn(),
       getOrSet: jest.fn(),
       clear: jest.fn(),

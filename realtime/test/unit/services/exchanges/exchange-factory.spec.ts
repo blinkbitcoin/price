@@ -77,6 +77,5 @@ describe("ExchangeFactory", () => {
       expect(result).not.toBeInstanceOf(Error)
       expect(typeof service.fetchTicker).toBe("function")
     })
-
   })
 })
