@@ -1,4 +1,4 @@
-FROM node:20-alpine AS BUILD_IMAGE
+FROM node:20.20.0-alpine AS BUILD_IMAGE
 
 RUN apk update && apk add python3 make g++
 
@@ -13,7 +13,7 @@ RUN rm -rf /app/node_modules
 RUN rm -rf /app/realtime/node_modules
 RUN yarn install --frozen-lockfile --production
 
-FROM node:20-alpine
+FROM node:20.20.0-alpine
 COPY --from=BUILD_IMAGE /app/realtime/dist /app
 COPY --from=BUILD_IMAGE /app/node_modules /app/node_modules
 COPY --from=BUILD_IMAGE /app/realtime/node_modules /app/node_modules
