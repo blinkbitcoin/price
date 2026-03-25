@@ -28,7 +28,8 @@ export const CcxtExchangeService = async ({
     await client.loadMarkets()
   } catch (error) {
     baseLogger.error({ error, exchangeId }, "Failed to load markets")
-    return new UnknownExchangeServiceError(error)
+    const message = error instanceof Error ? error.message : String(error)
+    return new UnknownExchangeServiceError(message)
   }
 
   const listPrices = async ({
