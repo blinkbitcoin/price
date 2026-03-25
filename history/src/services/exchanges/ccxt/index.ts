@@ -24,7 +24,12 @@ export const CcxtExchangeService = async ({
 
   const client: Exchange = new ccxt[exchangeId](config)
 
-  await client.loadMarkets()
+  try {
+    await client.loadMarkets()
+  } catch (error) {
+    baseLogger.error({ error, exchangeId }, "Failed to load markets")
+    return new UnknownExchangeServiceError(error)
+  }
 
   const listPrices = async ({
     timeframe,
