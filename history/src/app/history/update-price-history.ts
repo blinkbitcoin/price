@@ -14,6 +14,7 @@ const exchangeFactory = ExchangeFactory()
 
 export const updatePriceHistory = async (): Promise<boolean | ApplicationError> => {
   const exchanges = getExchangesConfig()
+  let anyExchangeSucceeded = false
 
   for (const exchange of exchanges) {
     const prices: Tick[] = []
@@ -58,9 +59,10 @@ export const updatePriceHistory = async (): Promise<boolean | ApplicationError> 
       continue
     }
     baseLogger.info({ recordsUpdated: result, exchange: name }, "Price history updated")
+    anyExchangeSucceeded = true
   }
 
-  return true
+  return anyExchangeSucceeded
 }
 
 const queryByRange = async ({
