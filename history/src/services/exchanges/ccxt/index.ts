@@ -24,7 +24,13 @@ export const CcxtExchangeService = async ({
 
   const client: Exchange = new ccxt[exchangeId](config)
 
-  await client.loadMarkets()
+  try {
+    await client.loadMarkets()
+  } catch (error) {
+    baseLogger.error({ error, exchangeId }, "Failed to load markets")
+    const message = error instanceof Error ? error.message : String(error)
+    return new UnknownExchangeServiceError(message)
+  }
 
   const listPrices = async ({
     timeframe,
@@ -34,13 +40,22 @@ export const CcxtExchangeService = async ({
     try {
       if (!client.has.fetchOHLCV) return new OHLCVNotSupportedExchangeServiceError()
 
+      if (client.timeframes && !(timeframe in client.timeframes)) {
+        baseLogger.warn(
+          { exchangeId, timeframe },
+          "Timeframe not supported by exchange, skipping",
+        )
+        return []
+      }
+
       const ohlc = await client.fetchOHLCV(symbol, timeframe, since, limit)
       if (!ohlc || !ohlc.length) return []
 
       return ohlc.map(exchangePriceFromRaw).filter(isExchangePrice)
     } catch (error) {
-      baseLogger.error({ error }, "Ccxt unknown error")
-      return new UnknownExchangeServiceError(error)
+      baseLogger.error({ error, exchangeId }, "Ccxt unknown error")
+      const message = error instanceof Error ? error.message : String(error)
+      return new UnknownExchangeServiceError(message)
     }
   }
 

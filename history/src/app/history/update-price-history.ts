@@ -14,11 +14,13 @@ const exchangeFactory = ExchangeFactory()
 
 export const updatePriceHistory = async (): Promise<boolean | ApplicationError> => {
   const exchanges = getExchangesConfig()
+  let anyExchangeSucceeded = false
 
   for (const exchange of exchanges) {
     const prices: Tick[] = []
     const { name, base, quote } = exchange
 
+    let exchangeFailed = false
     for (const range in PriceRange) {
       const result = await queryByRange({ range: PriceRange[range], exchange })
       if (result instanceof Error) {
@@ -31,7 +33,8 @@ export const updatePriceHistory = async (): Promise<boolean | ApplicationError> 
           },
           "Could not query price history",
         )
-        return result
+        exchangeFailed = true
+        break
       }
       baseLogger.info(
         { records: result.length, range: PriceRange[range], exchange: name },
@@ -39,6 +42,8 @@ export const updatePriceHistory = async (): Promise<boolean | ApplicationError> 
       )
       prices.push(...result)
     }
+
+    if (exchangeFailed) continue
 
     const result = await PriceRepository().updatePrices({
       exchange: name,
@@ -51,12 +56,13 @@ export const updatePriceHistory = async (): Promise<boolean | ApplicationError> 
         { error: result, message: result.message, exchange: name },
         "Could not update price history",
       )
-      return result
+      continue
     }
     baseLogger.info({ recordsUpdated: result, exchange: name }, "Price history updated")
+    anyExchangeSucceeded = true
   }
 
-  return true
+  return anyExchangeSucceeded
 }
 
 const queryByRange = async ({
