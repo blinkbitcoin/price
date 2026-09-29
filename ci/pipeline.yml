@@ -133,7 +133,6 @@ jobs:
       - build-history-edge-image
       - build-history-migrate-edge-image
     - get: charts-repo
-      params: { skip_download: true }
     - get: pipeline-tasks
   - task: bump-image-digest-in-values
     config:
