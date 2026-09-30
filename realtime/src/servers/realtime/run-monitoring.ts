@@ -28,8 +28,7 @@ const exporter = new PrometheusExporter(
 
 startServer()
 
-const meterProvider = new MeterProvider()
-meterProvider.addMetricReader(exporter)
+const meterProvider = new MeterProvider({ readers: [exporter] })
 
 const meter = meterProvider.getMeter("prices-prometheus")
 

@@ -1,4 +1,4 @@
-import { schedule, ScheduledTask } from "node-cron"
+import { createTask, ScheduledTask } from "node-cron"
 
 import { getExchangesConfig, supportedCurrencies } from "@config"
 
@@ -39,7 +39,7 @@ const startWatcher = async ({
 
     callback(null, { exchangeName: exchange.name, ticker })
   }
-  const scheduledTask = schedule(exchange.cron, task, { scheduled: false })
+  const scheduledTask = createTask(exchange.cron, task)
   await task()
   scheduledTask.start()
   return scheduledTask

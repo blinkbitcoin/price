@@ -36,5 +36,10 @@
     "ts-node-dev": "^2.0.0",
     "tscpaths": "^0.0.9",
     "typescript": "^5.3.2"
+  },
+  "packageManager": "yarn@1.22.22",
+  "resolutions": {
+    "**/protobufjs": "^7.6.6",
+    "**/ws": "^8.21.0"
   }
 }
